@@ -1,0 +1,77 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<hdevelop file_version="1.2" halcon_version="23.05.0.0">
+<procedure name="main">
+<interface/>
+<body>
+<c>***</c>
+<c>* Declare variables</c>
+<c>***</c>
+<l>DataDir := 'C:/Users/slv1brg/Documents/source/PreNotchGauging/repo/Halcon/Data/'</l>
+<l>ImgDir := DataDir + 'Images/'</l>
+<l>SpecDir := DataDir + 'Specification/'</l>
+<l>* PartNumbers := ['0400-0171-04-0001', '0400-0171-04-0002', '0400-0171-04-0003']</l>
+<l>* PartNumbers := ['0400-0205-01-0001', '0400-0205-01-0002', '0400-0205-01-0003', '0400-0205-01-0004', '0400-0205-01-0005', '0400-0205-01-0006']</l>
+<l>PartNumbers := ['0400-0170-04-0001', '0400-0170-04-0002', '0400-0170-04-0003', '0400-0170-04-0004', '0400-0170-04-0005', '0400-0170-04-0006', '0400-0170-04-0007']</l>
+<l>* PartNumbers := ['0400-0160-05-0002']</l>
+<c></c>
+<l>Scale := 1/0.035</l>
+<l>SaveImages := true</l>
+<c></c>
+<c></c>
+<l>for i:=0 to |PartNumbers|-1 by 1</l>
+<l>    PartNumber := PartNumbers[i]</l>
+<l>    WorkFolder := SpecDir + PartNumber + '/'</l>
+<l>*     ViewList := ['top', 'bottom', 'left', 'right']</l>
+<l>    list_files (WorkFolder, 'files', Files)</l>
+<l>    tuple_regexp_select (Files, '\\.dxf$', FilesDxf)</l>
+<l>    tuple_regexp_match (FilesDxf, '[^/\\\\]*.dxf', ViewList)    </l>
+<c>    </c>
+<c>    </c>
+<l>    for j:=0 to |ViewList|-1 by 1</l>
+<l>        View := ViewList[j]</l>
+<l>        DxfFile := WorkFolder + View</l>
+<l>        dxf2image (Image, DxfFile, '', Scale)</l>
+<l>        write_image (Image, 'png', 0, WorkFolder + '/' + View)</l>
+<l>        dev_clear_obj (Image)</l>
+<l>    endfor</l>
+<l>endfor</l>
+<c></c>
+<l>stop()</l>
+<c></c>
+<c>*************</c>
+<c>* 0400-0160 *</c>
+<c>*************</c>
+<l>Scale := (8112.8/319.0)/0.035</l>
+<c>* TOP</c>
+<l>DxfPath := 'C:/Users/slv1brg/Documents/source/PreNotchGauging/Info/2024.02.28 - Provided Info/Provided Info/Part Numbers (to be inspected)/Drawing 12.6.23/0400-0160/ECR-195-04516 - Rev B (Top).dxf'</l>
+<l>ImageNameTop := '0400-0160-top'</l>
+<l>dxf2image (ImageTop, DxfPath, ImageNameTop, Scale)</l>
+<c></c>
+<c>* BACK</c>
+<l>DxfPath := 'C:/Users/slv1brg/Documents/source/PreNotchGauging/Info/2024.02.28 - Provided Info/Provided Info/Part Numbers (to be inspected)/Drawing 12.6.23/0400-0160/ECR-195-04516 - Rev B (Back).dxf'</l>
+<l>ImageNameBack := '0400-0160-back'</l>
+<l>dxf2image (ImageBack, DxfPath, ImageNameBack, Scale)</l>
+<c></c>
+<c>* BOTTOM</c>
+<l>DxfPath := 'C:/Users/slv1brg/Documents/source/PreNotchGauging/Info/2024.02.28 - Provided Info/Provided Info/Part Numbers (to be inspected)/Drawing 12.6.23/0400-0160/ECR-195-04516 - Rev B (Bottom).dxf'</l>
+<l>ImageNameBottom := '0400-0160-bottom'</l>
+<l>dxf2image (ImageBottom, DxfPath, ImageNameBottom, Scale)</l>
+<c></c>
+<c>* FRONT</c>
+<l>DxfPath := 'C:/Users/slv1brg/Documents/source/PreNotchGauging/Info/2024.02.28 - Provided Info/Provided Info/Part Numbers (to be inspected)/dxf/ECR-195-04516 - Rev B (Front).dxf'</l>
+<l>ImageNameFront := '0400-0160-front'</l>
+<l>dxf2image (ImageFront, DxfPath, ImageNameFront, Scale)</l>
+<c></c>
+<l>WorkFolder := 'C:/Users/slv1brg/Documents/source/PreNotchGauging/repo/Halcon/Data/Images/DXF2Image'</l>
+<l>if(SaveImages)</l>
+<l>    write_image (ImageTop, 'png', 0, WorkFolder + '/' + ImageNameTop)</l>
+<l>    write_image (ImageBack, 'png', 0, WorkFolder + '/' + ImageNameBack)</l>
+<l>    write_image (ImageBottom, 'png', 0, WorkFolder + '/' + ImageNameBottom)</l>
+<l>    write_image (ImageFront, 'png', 0, WorkFolder + '/' + ImageNameFront)</l>
+<l>endif</l>
+</body>
+<docu id="main">
+<parameters/>
+</docu>
+</procedure>
+</hdevelop>

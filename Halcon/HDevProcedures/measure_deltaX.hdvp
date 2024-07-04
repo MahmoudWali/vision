@@ -1,0 +1,131 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<hdevelop file_version="1.2" halcon_version="23.05.0.0">
+<procedure name="measure_deltaX">
+<interface>
+<ic>
+<par name="MetrologyModel" base_type="ctrl" dimension="0"/>
+<par name="HalconID" base_type="ctrl" dimension="0"/>
+</ic>
+<oc>
+<par name="Measurement" base_type="ctrl" dimension="0"/>
+<par name="Status" base_type="ctrl" dimension="0"/>
+</oc>
+</interface>
+<body>
+<c>* Get the required metrology model IDs</c>
+<l>try</l>
+<l>    startObjID := HalconID[0]</l>
+<l>    endObjID := HalconID[1]            </l>
+<l>catch (Exception)</l>
+<l>    Status := 'Error: Missing Halcon ID'</l>
+<l>    return()</l>
+<l>endtry</l>
+<c></c>
+<c>* Determine number of metrology objects</c>
+<l>get_metrology_object_indices (MetrologyModel, Indices)</l>
+<l>nMetrologyObjs := |Indices|</l>
+<c></c>
+<c>* Check if the start object is a special label (startX or endX)</c>
+<l>tuple_is_int (startObjID, startIsInt)</l>
+<l>if(startObjID == 'start_X')</l>
+<c>    * Determine start_X coordinate -&gt; Index is |MetrologyModel|-4</c>
+<l>    get_metrology_object_result (MetrologyModel, nMetrologyObjs-4, 'all', 'result_type', 'all_param', StartLine)</l>
+<l>elseif(startObjID == 'end_X')</l>
+<c>    * Determine end_X coordinate -&gt; Index is |MetrologyModel|-3</c>
+<l>    get_metrology_object_result (MetrologyModel, nMetrologyObjs-3, 'all', 'result_type', 'all_param', StartLine)</l>
+<l>elseif (startIsInt)</l>
+<c>    * Halcon ID is one of the metrology model indexes</c>
+<l>    get_metrology_object_result (MetrologyModel, startObjID, 'all', 'result_type', ['row','column'], StartPt)</l>
+<l>else</l>
+<l>    Status := 'Error: Halcon ID not supported'</l>
+<l>    return()</l>
+<l>endif</l>
+<c></c>
+<c>* Check if the end object is a special label (startX or endX)</c>
+<l>tuple_is_int (endObjID, endIsInt)</l>
+<l>if(endObjID == 'start_X')</l>
+<c>    * Determine start_X coordinate -&gt; Index is |MetrologyModel| - 4</c>
+<l>    get_metrology_object_result (MetrologyModel, nMetrologyObjs-4, 'all', 'result_type', 'all_param', EndLine)</l>
+<l>elseif(endObjID == 'end_X')</l>
+<c>    * Determine end_X coordinate -&gt; Index is |MetrologyModel| - 3</c>
+<l>    get_metrology_object_result (MetrologyModel, nMetrologyObjs-3, 'all', 'result_type', 'all_param', EndLine)</l>
+<l>elseif (endIsInt)</l>
+<c>    * Halcon ID is one of the metrology model indexes</c>
+<l>    get_metrology_object_result (MetrologyModel, endObjID, 'all', 'result_type', ['row','column'], EndPt)</l>
+<l>else</l>
+<l>    Status := 'Error: Halcon ID not supported'</l>
+<l>    return()</l>
+<l>endif</l>
+<c></c>
+<c></c>
+<c>* Perform the measurement</c>
+<l>if(startIsInt and endIsInt)</l>
+<l>    distance_pp (StartPt[0], StartPt[1], EndPt[0], EndPt[1], Measurement)</l>
+<l>elseif(not startIsInt and  not endIsInt)</l>
+<c>    * Start and End are both lines</c>
+<l>    distance_ss (StartLine[0], StartLine[1], StartLine[2], StartLine[3],\
+                 EndLine[0], EndLine[1], EndLine[2], EndLine[3], DistMin, DistMax)</l>
+<l>    Measurement := DistMax</l>
+<l>elseif(startIsInt and not endIsInt)</l>
+<c>    * Start is a point and End is a line</c>
+<l>    distance_pl (StartPt[0], StartPt[1], EndLine[0], EndLine[1], EndLine[2], EndLine[3], Measurement)</l>
+<l>elseif(not startIsInt and endIsInt)</l>
+<c>    * Start is a line and end is a point</c>
+<l>    distance_pl (EndPt[0], EndPt[1], StartLine[0], StartLine[1], StartLine[2], StartLine[3], Measurement)</l>
+<l>endif</l>
+<c></c>
+<l>Status := 'OK'</l>
+<l>return ()</l>
+</body>
+<docu id="measure_deltaX">
+<abstract lang="en_US">Halcon procedure to perform a deltaX measurement.
+
+This function must be used only after apply_metrology_model.</abstract>
+<parameters>
+<parameter id="HalconID">
+<default_type>integer</default_type>
+<description lang="en_US">Tuple with the Halcon IDs for the measurement.
+Index 0: Start ID of the measurement. 
+Index 1: End ID of the measurement. 
+
+It can either be an integer that represents the index of an object in the metrology model or a string label that represents one of the edges of the part being inspected: start_X, end_X, start_Y, end_Y.</description>
+<mixed_type>optional</mixed_type>
+<multivalue>true</multivalue>
+<type_list>
+<item>integer</item>
+<item>string</item>
+</type_list>
+</parameter>
+<parameter id="Measurement">
+<default_type>real</default_type>
+<description lang="en_US">Measurement result.</description>
+<multivalue>false</multivalue>
+<sem_type>real</sem_type>
+<type_list>
+<item>real</item>
+</type_list>
+</parameter>
+<parameter id="MetrologyModel">
+<default_type>integer</default_type>
+<description lang="en_US">Metrology model.</description>
+<mixed_type>false</mixed_type>
+<sem_type>handle</sem_type>
+<type_list>
+<item>integer</item>
+</type_list>
+</parameter>
+<parameter id="Status">
+<default_type>string</default_type>
+<description lang="en_US">Error code.
+
+If measurement successfully performed: 'ok'
+Else: &lt;message with error information&gt;</description>
+<sem_type>string</sem_type>
+<type_list>
+<item>string</item>
+</type_list>
+</parameter>
+</parameters>
+</docu>
+</procedure>
+</hdevelop>

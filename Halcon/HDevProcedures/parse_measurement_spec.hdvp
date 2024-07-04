@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<hdevelop file_version="1.2" halcon_version="23.05.0.0">
+<procedure name="parse_measurement_spec">
+<interface>
+<ic>
+<par name="SpecificationFile" base_type="ctrl" dimension="0"/>
+</ic>
+<oc>
+<par name="MeasurementSpec" base_type="ctrl" dimension="0"/>
+</oc>
+</interface>
+<body>
+<l>read_dict (SpecificationFile, ['convert_json_arrays_to'], ['tuple_if_possible'], MeasurementSpec)</l>
+<l>return ()</l>
+</body>
+<docu id="parse_measurement_spec">
+<abstract lang="en_US">Halcon procedure to load the measurement specification from a file.
+
+The data in the file is converted to a Halcon dictionary which specifies which measurements must be done.</abstract>
+<parameters>
+<parameter id="MeasurementSpec">
+<default_type>integer</default_type>
+<description lang="en_US">Halcon dictionary representing the measurement specification.</description>
+<mixed_type>false</mixed_type>
+<multivalue>optional</multivalue>
+<sem_type>dict</sem_type>
+<type_list>
+<item>integer</item>
+</type_list>
+</parameter>
+<parameter id="SpecificationFile">
+<default_type>string</default_type>
+<description lang="en_US">Path of the measurement specification file.</description>
+<multivalue>false</multivalue>
+<sem_type>string</sem_type>
+<type_list>
+<item>string</item>
+</type_list>
+</parameter>
+</parameters>
+</docu>
+</procedure>
+</hdevelop>

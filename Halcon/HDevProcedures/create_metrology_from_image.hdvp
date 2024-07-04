@@ -1,0 +1,168 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<hdevelop file_version="1.2" halcon_version="23.05.0.0">
+<procedure name="create_metrology_from_image">
+<interface>
+<io>
+<par name="ImageTemplate" base_type="iconic" dimension="0"/>
+</io>
+<ic>
+<par name="CameraParam" base_type="ctrl" dimension="0"/>
+<par name="MeasurementPlane" base_type="ctrl" dimension="0"/>
+</ic>
+<oc>
+<par name="MetrologyHandle" base_type="ctrl" dimension="0"/>
+</oc>
+</interface>
+<body>
+<c>* Get image info</c>
+<l>get_image_size (ImageTemplate, Width, Height)</l>
+<c></c>
+<c>* Adjust the pose of the measurement plane</c>
+<c>* for the height of the part and the height of the calibration plate.</c>
+<c>* </c>
+<c>* Thickness of the calibration plate. --&gt; ToDo: ADJUST THIS</c>
+<l>CalibPlateThickness := 0.006</l>
+<c>* Thickness of the object to be measured. --&gt; ToDo: ADJUST THIS</c>
+<l>PartHeight := 0.005 </l>
+<l>AdjustThickness := CalibPlateThickness - PartHeight</l>
+<l>set_origin_pose (MeasurementPlane, 0, 0, AdjustThickness, MeasurementPlaneAdjusted)</l>
+<c>* </c>
+<c>* Create the metrology model and prepare it for</c>
+<c>* calibrated measurements.</c>
+<l>create_metrology_model (MetrologyHandle)</l>
+<c>* Set the image size in advance to speed up the</c>
+<c>* first call of apply_metrology_model.</c>
+<l>set_metrology_model_image_size (MetrologyHandle, Width, Height)</l>
+<c>* Set the camera parameters.</c>
+<l>set_metrology_model_param (MetrologyHandle, 'camera_param', CameraParam)</l>
+<c>* Set the plane in which the measured object lies.</c>
+<l>set_metrology_model_param (MetrologyHandle, 'plane_pose', MeasurementPlaneAdjusted)</l>
+<c></c>
+<c></c>
+<c>* </c>
+<c>* Add the objects to be measured to the metrology model.</c>
+<l>binary_threshold (ImageTemplate, Region, 'max_separability', 'dark', UsedThreshold)</l>
+<l>closing_rectangle1 (Region, RegionClosing, 3.5, 3.5)</l>
+<l>boundary (RegionClosing, RegionBorder, 'inner')</l>
+<l>clip_region_rel (RegionBorder, RegionClipped, 3, 3, 3, 3)</l>
+<l>dilation_rectangle1 (RegionClipped, RegionDilation, 5.5, 5.5)</l>
+<l>reduce_domain (ImageTemplate, RegionDilation, ImageReduced)</l>
+<c></c>
+<c>* Create contours</c>
+<l>edges_sub_pix (ImageReduced, Edges, 'lanser2', 0.5, 10, 30)</l>
+<l>sort_contours_xld (Edges, EdgesSorted, 'character', 'true', 'column')</l>
+<c></c>
+<c>* Segment contours</c>
+<l>* segment_contours_xld (Edges, ContoursSplit, 'lines_circles', 6, 4, 4)</l>
+<c></c>
+<c>* Segment contours by shape and add them to the metrology model</c>
+<l>gen_empty_obj (MeasCircles)</l>
+<l>RowCenterCircle := []</l>
+<l>ColCenterCircle := []</l>
+<l>RadiusCircle    := []</l>
+<c></c>
+<l>gen_empty_obj (MeasRectangles)</l>
+<l>RowCenterRect := []</l>
+<l>ColCenterRect := []</l>
+<l>PhiRect       := []</l>
+<l>Length1Rect   := []</l>
+<l>Length2Rect   := []</l>
+<c></c>
+<l>MeasureL1     := 30</l>
+<l>MeasureL2     := 3</l>
+<l>MeasureSigma  := 1</l>
+<l>MeasureThresh := 30</l>
+<c></c>
+<l>count_obj (EdgesSorted, NumEdges)</l>
+<l>for i:=1 to NumEdges by 1</l>
+<l>    select_obj (EdgesSorted, SingleEdge, i)</l>
+<l>    circularity_xld (SingleEdge, Circularity)</l>
+<l>    rectangularity_xld (SingleEdge, Rectangularity)</l>
+<l>    if(Circularity &gt; Rectangularity)</l>
+<c>        * Circle</c>
+<l>        fit_circle_contour_xld (SingleEdge, 'atukey', -1, 2, 0, 5, 2, Row, Col, Radius, StartPhi, EndPhi, PointOrder)</l>
+<l>        gen_circle_contour_xld (Circle, Row, Col, Radius, 0, rad(360), 'positive', 1)        </l>
+<l>        concat_obj (MeasCircles, Circle, MeasCircles)</l>
+<l>        RowCenterCircle := [RowCenterCircle, Row]</l>
+<l>        ColCenterCircle := [ColCenterCircle, Col]</l>
+<l>        RadiusCircle    := [RadiusCircle, Radius]</l>
+<c>        </c>
+<l>        CircleParam := [Row, Col, Radius]</l>
+<l>        add_metrology_object_generic (MetrologyHandle, 'circle', CircleParam, MeasureL1, MeasureL2, MeasureSigma, MeasureThresh, [], [], CircleIndices)</l>
+<l>    else</l>
+<c>        * Rectangle</c>
+<l>        fit_rectangle2_contour_xld (SingleEdge, 'tukey', -1, 0, 0, 3, 2, Row, Col, Phi, L1, L2, PointOrder)</l>
+<l>        gen_rectangle2_contour_xld (Rectangle, Row, Col, Phi, L1, L2)</l>
+<l>        concat_obj (MeasRectangles, Rectangle, MeasRectangles)</l>
+<l>        RowCenterRect := [RowCenterRect, Row]</l>
+<l>        ColCenterRect := [ColCenterRect, Col]</l>
+<l>        PhiRect       := [PhiRect, Phi]</l>
+<l>        Length1Rect   := [Length1Rect, L1]</l>
+<l>        Length2Rect   := [Length2Rect, L2]</l>
+<c>        </c>
+<l>        RectangleParam := [Row, Col, Phi, L1, L2]</l>
+<l>        add_metrology_object_generic (MetrologyHandle, 'rectangle2', RectangleParam, MeasureL1, MeasureL2, MeasureSigma, MeasureThresh, [], [], RectIndices)</l>
+<l>    endif</l>
+<l>endfor</l>
+<c></c>
+<c>* Debug only</c>
+<l>* dev_clear_window ()</l>
+<l>* dev_display (ImageTemplate)</l>
+<l>* dev_set_line_width (2)</l>
+<l>* dev_set_color ('red')</l>
+<l>* dev_display (MeasCircles)</l>
+<l>* dev_set_color ('blue')</l>
+<l>* dev_display (MeasRectangles)</l>
+<l>* stop()</l>
+<c></c>
+<c></c>
+<l>return ()</l>
+<c></c>
+<c></c>
+<c></c>
+<c></c>
+<c></c>
+<c></c>
+<c></c>
+<c></c>
+<c></c>
+<c></c>
+<c></c>
+<c></c>
+</body>
+<docu id="create_metrology_from_image">
+<parameters>
+<parameter id="CameraParam">
+<description lang="en_US">Camera intrinsic and extrinsic parameters.</description>
+<mixed_type>optional</mixed_type>
+<multivalue>true</multivalue>
+<sem_type>number</sem_type>
+</parameter>
+<parameter id="ImageTemplate">
+<multichannel>false</multichannel>
+<multivalue>false</multivalue>
+<sem_type>image</sem_type>
+<type_list>
+<item>byte</item>
+<item>uint2</item>
+</type_list>
+</parameter>
+<parameter id="MeasurementPlane">
+<description lang="en_US">The pose of the measurement plane.</description>
+<mixed_type>optional</mixed_type>
+<multivalue>true</multivalue>
+<sem_type>number</sem_type>
+</parameter>
+<parameter id="MetrologyHandle">
+<default_type>integer</default_type>
+<description lang="en_US">Handle of the created metrology model.</description>
+<mixed_type>false</mixed_type>
+<sem_type>handle</sem_type>
+<type_list>
+<item>integer</item>
+</type_list>
+</parameter>
+</parameters>
+</docu>
+</procedure>
+</hdevelop>

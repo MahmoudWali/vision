@@ -1,0 +1,199 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<hdevelop file_version="1.2" halcon_version="23.05.0.0">
+<procedure name="perform_measurement">
+<interface>
+<io>
+<par name="Image" base_type="iconic" dimension="0"/>
+</io>
+<ic>
+<par name="MetrologyModel" base_type="ctrl" dimension="0"/>
+<par name="AlignmentModel" base_type="ctrl" dimension="0"/>
+<par name="RectAlignModel" base_type="ctrl" dimension="0"/>
+<par name="MeasurementSpec" base_type="ctrl" dimension="0"/>
+<par name="PartNumber" base_type="ctrl" dimension="0"/>
+<par name="View" base_type="ctrl" dimension="0"/>
+</ic>
+</interface>
+<body>
+<c>* </c>
+<c>* Measure the position and orientation of the object in the</c>
+<c>* current image using the shape model.</c>
+<l>Row1 := RectAlignModel[0]</l>
+<l>Col1 := RectAlignModel[1]</l>
+<l>Row2 := RectAlignModel[2]</l>
+<l>Col2 := RectAlignModel[3]</l>
+<l>gen_rectangle1(Rectangle, Row1, Col1, Row2, Col2)</l>
+<l>reduce_domain( Image, Rectangle, ImageAlignModel)</l>
+<l>find_generic_shape_model (ImageAlignModel, AlignmentModel, MatchResultID, NumMatchResult)</l>
+<l>* get_generic_shape_model_result_object (FoundMatchesContours, MatchResultID, 'all', 'contours')</l>
+<l>* dev_clear_window ()</l>
+<l>* dev_display (ImageAlignModel)</l>
+<l>* dev_display (FoundMatchesContours)</l>
+<l>* stop()</l>
+<c>* </c>
+<c>* Get the position and orientation of the found matches.</c>
+<l>get_generic_shape_model_result (MatchResultID, 'all', 'row', RowAlign)</l>
+<l>get_generic_shape_model_result (MatchResultID, 'all', 'column', ColumnAlign)</l>
+<l>get_generic_shape_model_result (MatchResultID, 'all', 'angle', AngleAlign)</l>
+<l>gen_cross_contour_xld (Cross, RowAlign, ColumnAlign, 160, AngleAlign)</l>
+<c></c>
+<c>* </c>
+<c>* Use the computed position and orientation to</c>
+<c>* align the metrology model with its current occurrence.</c>
+<l>align_metrology_model (MetrologyModel, RowAlign, ColumnAlign, AngleAlign)</l>
+<c>* Display the aligned metrology model.</c>
+<l>* get_metrology_object_model_contour (ModelContour, MetrologyModel, 'all', 1.5)</l>
+<l>* get_metrology_object_measures (MeasureContour, MetrologyModel, 'all', 'all', Row, Column)</l>
+<l>* dev_clear_window ()</l>
+<l>* dev_display (ImageAlignModel)</l>
+<l>* dev_set_color ('blue')</l>
+<l>* dev_set_line_width (2)</l>
+<l>* dev_display (MeasureContour)</l>
+<l>* stop ()</l>
+<c></c>
+<c>* </c>
+<c>* Perform the measurement for all metrology objects in one call.</c>
+<l>apply_metrology_model (Image, MetrologyModel)</l>
+<c>* Get measure regions for visualization.</c>
+<l>get_metrology_object_measures (Contour, MetrologyModel, 'all', 'all', Row, Column)</l>
+<c>* Get the edge points that were actually used to fit the</c>
+<c>* geometric forms.</c>
+<l>* get_metrology_object_result (MetrologyModel, 'all', 'all', 'used_edges', 'row', UsedRow)</l>
+<l>* get_metrology_object_result (MetrologyModel, 'all', 'all', 'used_edges', 'column', UsedColumn)</l>
+<l>* gen_cross_contour_xld (UsedEdges, UsedRow, UsedColumn, 10, rad(45))</l>
+<l>* dev_set_color ('red')</l>
+<l>* dev_set_line_width (1)</l>
+<l>* dev_display (UsedEdges)</l>
+<l>* stop ()</l>
+<c></c>
+<c></c>
+<c></c>
+<c>* </c>
+<c>* Access the results of the measurement.</c>
+<c>* Since camera parameters were set, all results are given in</c>
+<c>* metric coordinates relative to the coordinate system</c>
+<c>* defined by the measurement plane.</c>
+<c>* </c>
+<c>* Get a visualization of the measured geometric forms.</c>
+<l>get_metrology_object_result_contour (ResultContours, MetrologyModel, 'all', 'all', 1.5)</l>
+<c>* Extract the center points.</c>
+<l>* get_metrology_object_result (MetrologyModel, 'all', 'all', 'result_type', 'radius', CenterPoints)</l>
+<l>get_metrology_object_measures (Contours, MetrologyModel, 'all', 'all', Row1, Column1)</l>
+<l>gen_cross_contour_xld (Contours, Row1, Column1, 10, rad(45))</l>
+<c></c>
+<c></c>
+<c>* Perform the measurement according to the specified measurement type</c>
+<l>get_dict_param (MeasurementSpec, 'keys', [], AllKeys)</l>
+<l>Resolution := 0.035</l>
+<l>for i:=0 to |AllKeys|-1 by 1</l>
+<c>    * Determine measurement type</c>
+<l>    MeasType := MeasurementSpec.[i].MeasType</l>
+<l>    Measurement := 'null'</l>
+<c>    </c>
+<l>    try</l>
+<l>        if(MeasType == 'deltaX')</l>
+<l>            measure_deltaX (MetrologyModel, MeasurementSpec.[i].HalconID, Measurement, Status)        </l>
+<l>        elseif (MeasType == 'deltaY')</l>
+<l>            measure_deltaY (MetrologyModel, MeasurementSpec.[i].HalconID, Measurement, Status)</l>
+<l>        elseif (MeasType == 'diameter')</l>
+<l>            get_metrology_object_result (MetrologyModel, MeasurementSpec.[i].HalconID, 'all', 'result_type', 'radius', Radius)</l>
+<l>            Measurement := Radius * 2.0</l>
+<l>            Status := 'OK'</l>
+<l>        elseif (MeasType == 'width')</l>
+<l>            get_metrology_object_result (MetrologyModel, MeasurementSpec.[i].HalconID, 'all', 'result_type', 'length1', Measurement)</l>
+<l>            Status := 'OK'</l>
+<l>        elseif (MeasType == 'height')</l>
+<l>            get_metrology_object_result (MetrologyModel, MeasurementSpec.[i].HalconID, 'all', 'result_type', 'length2', Measurement)</l>
+<l>            Status := 'OK'</l>
+<l>        endif</l>
+<l>    catch (Exception)</l>
+<l>        Status := 'Error: ' + Exception</l>
+<l>    endtry</l>
+<c>    </c>
+<l>    MeasurementSpec.[i].['Status'] := Status</l>
+<l>    MeasurementSpec.[i].['MeasValue'] := Measurement * Resolution</l>
+<l>endfor</l>
+<c></c>
+<l>return ()</l>
+</body>
+<docu id="perform_measurement">
+<abstract lang="en_US">Halcon procedure to perform the measurements defined in the measurement specification, using the metrology model.
+
+The metrology model is aligned to each new image using the alignment model.
+
+The measurement results are written in the MeasurementResults output dictionary.</abstract>
+<parameters>
+<parameter id="AlignmentModel">
+<default_type>integer</default_type>
+<description lang="en_US">Alignment model (shape-based) used to align the metrology model to each new image before the measurments.</description>
+<mixed_type>false</mixed_type>
+<multivalue>false</multivalue>
+<sem_type>handle</sem_type>
+<type_list>
+<item>integer</item>
+</type_list>
+</parameter>
+<parameter id="Image">
+<description lang="en_US">Image of the scanned part.</description>
+<multichannel>false</multichannel>
+<multivalue>false</multivalue>
+<sem_type>image</sem_type>
+<type_list>
+<item>byte</item>
+<item>int2</item>
+<item>uint2</item>
+<item>real</item>
+</type_list>
+</parameter>
+<parameter id="MeasurementSpec">
+<default_type>integer</default_type>
+<description lang="en_US">Dictionary with the measurement specification.
+
+This procedure will loop through the list of measurements defined in this dictionary and make the corresponding measurements.
+
+The measurement results will be stored in the same dictionary.</description>
+<mixed_type>false</mixed_type>
+<multivalue>optional</multivalue>
+<sem_type>dict</sem_type>
+<type_list>
+<item>integer</item>
+</type_list>
+</parameter>
+<parameter id="MetrologyModel">
+<default_type>integer</default_type>
+<description lang="en_US">Metrology model containing all the relevant objects in the image.</description>
+<mixed_type>false</mixed_type>
+<sem_type>handle</sem_type>
+<type_list>
+<item>integer</item>
+</type_list>
+</parameter>
+<parameter id="PartNumber">
+<default_type>string</default_type>
+<description lang="en_US">Part Number to be inspected.</description>
+<multivalue>false</multivalue>
+<sem_type>string</sem_type>
+<type_list>
+<item>string</item>
+</type_list>
+</parameter>
+<parameter id="RectAlignModel"/>
+<parameter id="View">
+<default_type>string</default_type>
+<description lang="en_US">View of the part to be inspected: Top, Bottom, Left, Right</description>
+<multivalue>false</multivalue>
+<sem_type>string</sem_type>
+<type_list>
+<item>string</item>
+</type_list>
+<values>
+<item>Top</item>
+<item>Bottom</item>
+<item>Left</item>
+<item>Right</item>
+</values>
+</parameter>
+</parameters>
+</docu>
+</procedure>
+</hdevelop>

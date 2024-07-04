@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<hdevelop file_version="1.2" halcon_version="23.05.0.0">
+<procedure name="main">
+<interface/>
+<body>
+<l>dev_update_off ()</l>
+<c></c>
+<c>*</c>
+<c>* Keyence LJXA camera settings</c>
+<l>ImageWidth := 3200</l>
+<l>ImageHeight := 2665</l>
+<l>Device1 := '192.168.1.100:24691:24692'</l>
+<l>Device2 := '192.168.1.200:24691:24692'</l>
+<c></c>
+<c>*</c>
+<c>* Open Keyence LJXA</c>
+<l>open_keyence_LJXA (ImageWidth, ImageHeight, Device1, AcqHandle1)</l>
+<c></c>
+<c></c>
+<c>*</c>
+<c>* Acquire images</c>
+<l>TotalImageHeight := 100000</l>
+<l>Timeout := 60000</l>
+<l>acquire_image (Image, AcqHandle1, TotalImageHeight, Timeout)</l>
+<c></c>
+<c></c>
+<c>* </c>
+<c>* Close Keyence LJXA (all at once)</c>
+<l>open_framegrabber ('File', 1, 1, 0, 0, 0, 0, 'default', -1, 'default', -1, 'false', 'printer_chip/printer_chip_01', '', 1, 2, AcqHandle1)</l>
+<l>open_framegrabber ('File', 1, 1, 0, 0, 0, 0, 'default', -1, 'default', -1, 'false', 'printer_chip/printer_chip_02', '', 1, 2, AcqHandle2)</l>
+<l>AcqHandles := [AcqHandle1,AcqHandle2]</l>
+<l>close_keyence_LJXA (AcqHandles)</l>
+<c>* Test failure</c>
+<l>AcqHandles := [AcqHandle1,AcqHandle2, 'DummyHandle123']</l>
+<l>close_keyence_LJXA (AcqHandles)</l>
+<c></c>
+<c></c>
+<c></c>
+<c></c>
+<c></c>
+<c></c>
+</body>
+<docu id="main">
+<parameters/>
+</docu>
+</procedure>
+</hdevelop>

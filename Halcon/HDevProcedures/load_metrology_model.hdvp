@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<hdevelop file_version="1.2" halcon_version="23.05.0.0">
+<procedure name="load_metrology_model">
+<interface>
+<ic>
+<par name="FileName" base_type="ctrl" dimension="0"/>
+</ic>
+<oc>
+<par name="MetrologyModel" base_type="ctrl" dimension="0"/>
+</oc>
+</interface>
+<body>
+<l>read_metrology_model (FileName, MetrologyModel)</l>
+<l>return ()</l>
+</body>
+<docu id="load_metrology_model">
+<abstract lang="en_US">Halcon procedure to load a metrology model from file.</abstract>
+<parameters>
+<parameter id="FileName">
+<default_type>string</default_type>
+<description lang="en_US">Filename, including path, of the the metrology model.</description>
+<mixed_type>false</mixed_type>
+<multivalue>false</multivalue>
+<sem_type>string</sem_type>
+<type_list>
+<item>string</item>
+</type_list>
+</parameter>
+<parameter id="MetrologyModel">
+<default_type>integer</default_type>
+<description lang="en_US">Handle of the loaded metrology model.</description>
+<mixed_type>false</mixed_type>
+<multivalue>false</multivalue>
+<sem_type>handle</sem_type>
+<type_list>
+<item>integer</item>
+</type_list>
+</parameter>
+</parameters>
+</docu>
+</procedure>
+</hdevelop>

@@ -1,0 +1,105 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<hdevelop file_version="1.2" halcon_version="23.05.0.0">
+<procedure name="create_alignment_model">
+<interface>
+<io>
+<par name="ImageTemplateMetrology" base_type="iconic" dimension="0"/>
+</io>
+<ic>
+<par name="MetrologyModel" base_type="ctrl" dimension="0"/>
+<par name="RectAlignModel" base_type="ctrl" dimension="0"/>
+</ic>
+<oc>
+<par name="ModelID" base_type="ctrl" dimension="0"/>
+</oc>
+</interface>
+<body>
+<c>* </c>
+<c>* Create the shape model for the alignment</c>
+<c>* of the metrology model in images where the</c>
+<c>* object occurs in positions and orientations different</c>
+<c>* from the ones in the image used for creating the model.</c>
+<l>Row1 := RectAlignModel[0]</l>
+<l>Col1 := RectAlignModel[1]</l>
+<l>Row2 := RectAlignModel[2]</l>
+<l>Col2 := RectAlignModel[3]</l>
+<l>gen_rectangle1(Rectangle, Row1, Col1, Row2, Col2)</l>
+<l>reduce_domain (ImageTemplateMetrology, Rectangle, ImageShapeModel)</l>
+<l>binary_threshold (ImageShapeModel, Region, 'max_separability', 'light', UsedThreshold)</l>
+<l>closing_rectangle1 (Region, RegionClosing, 3.5, 3.5)</l>
+<l>boundary (RegionClosing, RegionBorder, 'inner')</l>
+<l>clip_region_rel (RegionBorder, RegionClipped, 3, 3, 3, 3)</l>
+<l>dilation_rectangle1 (RegionClipped, ModelRegion, 5.5, 5.5)</l>
+<l>reduce_domain (ImageShapeModel, ModelRegion, ImageReduced)</l>
+<l>create_generic_shape_model (ModelID)</l>
+<c>* Set model parameters for training.</c>
+<l>set_generic_shape_model_param (ModelID, 'angle_start', rad(-15))</l>
+<l>set_generic_shape_model_param (ModelID, 'angle_end', rad(15))</l>
+<l>set_generic_shape_model_param (ModelID, 'iso_scale_min', 0.8)</l>
+<l>set_generic_shape_model_param (ModelID, 'iso_scale_max', 1.2)</l>
+<l>train_generic_shape_model (ImageReduced, ModelID)</l>
+<c></c>
+<c>* Set model parameters for searching.</c>
+<l>set_generic_shape_model_param (ModelID, 'border_shape_models', 'true')</l>
+<l>set_generic_shape_model_param (ModelID, 'min_score', 0.1)</l>
+<l>set_generic_shape_model_param (ModelID, 'num_matches', 0)</l>
+<l>set_generic_shape_model_param (ModelID, 'max_overlap', 0)</l>
+<l>set_generic_shape_model_param (ModelID, 'min_contrast', 25)</l>
+<c></c>
+<c></c>
+<c>* The origin of the shape model is the center of the</c>
+<c>* input region used in train_generic_shape_model.</c>
+<l>area_center (ModelRegion, Area, ModelRow, ModelCol)</l>
+<l>get_generic_shape_model_object (ModelContours, ModelID, 'contours')</l>
+<c></c>
+<c></c>
+<c>* Change the reference system in which the metrology model is</c>
+<c>* defined to correspond to the one used by the shape model.</c>
+<c>* This is necessary to be able to directly use the results of</c>
+<c>* find_generic_shape_model to align the metrology model.</c>
+<l>set_metrology_model_param (MetrologyModel, 'reference_system', [ModelRow,ModelCol,0])</l>
+<l>return ()</l>
+</body>
+<docu id="create_alignment_model">
+<abstract lang="en_US">Halcon procedure to create a generic shape model to align the metrology model.</abstract>
+<parameters>
+<parameter id="ImageTemplateMetrology">
+<description lang="en_US">Template image to create alignment model.</description>
+<multivalue>false</multivalue>
+<sem_type>image</sem_type>
+</parameter>
+<parameter id="MetrologyModel">
+<default_type>integer</default_type>
+<description lang="en_US">Metrology model. It will be updated with the alignment reference system.</description>
+<mixed_type>false</mixed_type>
+<multivalue>false</multivalue>
+<sem_type>handle</sem_type>
+<type_list>
+<item>integer</item>
+</type_list>
+</parameter>
+<parameter id="ModelID">
+<default_type>integer</default_type>
+<description lang="en_US">Handle representing the alignment model.</description>
+<mixed_type>false</mixed_type>
+<multivalue>false</multivalue>
+<sem_type>handle</sem_type>
+<type_list>
+<item>integer</item>
+</type_list>
+</parameter>
+<parameter id="RectAlignModel">
+<default_type>real</default_type>
+<description lang="en_US">Coordinates of the rectangle1 that represents the region of the image to be used as a template to create the alignment model. This might depend on the part number to be inspected.
+
+Expected format: [Row1, Col1, Row2, Col2]</description>
+<multivalue>true</multivalue>
+<sem_type>real</sem_type>
+<type_list>
+<item>real</item>
+</type_list>
+</parameter>
+</parameters>
+</docu>
+</procedure>
+</hdevelop>

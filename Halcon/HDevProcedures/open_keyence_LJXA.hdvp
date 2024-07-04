@@ -1,0 +1,93 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<hdevelop file_version="1.2" halcon_version="23.05.0.0">
+<procedure name="open_keyence_LJXA">
+<interface>
+<ic>
+<par name="ImageWidth" base_type="ctrl" dimension="0"/>
+<par name="ImageHeight" base_type="ctrl" dimension="0"/>
+<par name="Device" base_type="ctrl" dimension="0"/>
+</ic>
+<oc>
+<par name="AcqHandle" base_type="ctrl" dimension="0"/>
+</oc>
+</interface>
+<body>
+<l>try</l>
+<c>    * Settings</c>
+<l>    Name := 'KeyenceLJXA'</l>
+<l>    ColorSpace := 'rgb'</l>
+<l>    ExternalTrigger := 'false'</l>
+<c>    </c>
+<c>    * Open keyence LJXA</c>
+<l>*     open_framegrabber (Name, 1, 1, ImageWidth, ImageHeight, 0, 0, 'default', -1, ColorSpace, -1, ExternalTrigger, 'default', Device, 1, -1, AcqHandle)    </l>
+<l>    open_framegrabber('File', 1, 1, 0, 0, 0, 0, 'default', -1, 'default', -1, 'false', 'D:/Data/Images/0400-0160-top.png', 'default', 1, -1, AcqHandle)</l>
+<l>catch (Exception)</l>
+<l>    dev_get_exception_data (Exception, 'error_code', ErrorCode)</l>
+<l>    throw ([ErrorCode ,\
+           'The device ' + Device + ' could not be open.\n' +\
+           ' Name=' + Name + ', ColorSpace=' + ColorSpace + ', ExternalTigger='+ExternalTrigger] )</l>
+<l>endtry</l>
+<l>return ()</l>
+</body>
+<docu id="open_keyence_LJXA">
+<abstract lang="en_US">Halcon procedure to open a Keyence LJXA sensor.</abstract>
+<parameters>
+<parameter id="AcqHandle">
+<default_type>integer</default_type>
+<description lang="en_US">Acquisition handle representing the Keyence LJXA sensor.</description>
+<mixed_type>false</mixed_type>
+<multivalue>false</multivalue>
+<sem_type>handle</sem_type>
+<type_list>
+<item>integer</item>
+</type_list>
+</parameter>
+<parameter id="Device">
+<default_type>string</default_type>
+<description lang="en_US">・The IP address of the LJ-X8000A must be specified here. 
+*Port number can be specified after IP address.(not necessary) There are two ports in LJ-X8000A. First one is for command receiving / sending, second one is for high speed data communication. The section should be ' : '.
+
+For example,
+When IP address: 192.168.0.2, Port for command: 12345, Port for high speed data communication:  56789 are specified,
+Input ’192.168.0.2:12345:56789'.
+
+*'default' is specified, it works as '192.168.0.1:24691:24692'.</description>
+<multivalue>false</multivalue>
+<sem_type>string</sem_type>
+<type_list>
+<item>string</item>
+</type_list>
+</parameter>
+<parameter id="ImageHeight">
+<default_type>integer</default_type>
+<description lang="en_US">The number of Y data of height data.
+When "Batch mode" is used, it should be same as "Batch points" in LJ-X Navigator.
+*Batch Points range is 200 to 60000. The default is 1000.
+*Max 60000 can be set by LJ-X Navigator. but Max 32767 is available with Halcon.
+*If 0 is specified, it works as 1000.</description>
+<multivalue>false</multivalue>
+<sem_type>number</sem_type>
+<type_list>
+<item>integer</item>
+</type_list>
+<value_max>32767</value_max>
+<value_min>0</value_min>
+</parameter>
+<parameter id="ImageWidth">
+<default_type>integer</default_type>
+<description lang="en_US">The number of X data in one profile. It should be same as the parameter in LJ-X Navigator.
+*When LJ-V head is used, the range is 200 to 800. The default is 800.
+*When LJ-X head is used, the range is 200 to 3200. The default is 3200.
+*If 0 is specified, it works as 3200.</description>
+<multivalue>false</multivalue>
+<sem_type>number</sem_type>
+<type_list>
+<item>integer</item>
+</type_list>
+<value_max>3200</value_max>
+<value_min>0</value_min>
+</parameter>
+</parameters>
+</docu>
+</procedure>
+</hdevelop>

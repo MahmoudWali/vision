@@ -1,0 +1,96 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<hdevelop file_version="1.2" halcon_version="23.05.0.0">
+<procedure name="acquire_image">
+<interface>
+<oo>
+<par name="Image" base_type="iconic" dimension="0"/>
+</oo>
+<ic>
+<par name="AcqHandle" base_type="ctrl" dimension="0"/>
+<par name="ImageHeight" base_type="ctrl" dimension="0"/>
+<par name="Timeout" base_type="ctrl" dimension="0"/>
+</ic>
+</interface>
+<body>
+<c>*</c>
+<c>* Set acquisition timeout</c>
+<l>* set_framegrabber_param(AcqHandle,'grab_timeout', Timeout)</l>
+<c></c>
+<c>* Start asynchronous grabbing </c>
+<l>grab_image_start (AcqHandle, -1)</l>
+<c></c>
+<c>* Acquire image</c>
+<l>CurrentImageSize := 0</l>
+<l>ImageCount := 0</l>
+<l>gen_empty_obj (Images)</l>
+<l>while (CurrentImageSize &lt; ImageHeight)</l>
+<c>    * Acquire and concatenate images</c>
+<l>    grab_image_async (ImageTmp, AcqHandle, -1)</l>
+<l>    concat_obj (Images, ImageTmp, Images)</l>
+<c>    </c>
+<c>    </c>
+<c>    * Check if we already have enough data</c>
+<l>    get_image_size (ImageTmp, Width, SingleImageSize)</l>
+<l>    count_obj (Images, ImageCount)</l>
+<l>    CurrentImageSize := SingleImageSize * ImageCount</l>
+<l>endwhile</l>
+<c></c>
+<c>* Create single tiled image</c>
+<l>tile_images (Images, Image, 1, 'vertical')</l>
+<c></c>
+<l>return ()</l>
+</body>
+<docu id="acquire_image">
+<abstract lang="en_US">Halcon procedure to acquire images from Keyence LJ-XA series.</abstract>
+<parameters>
+<parameter id="AcqHandle">
+<default_type>integer</default_type>
+<description lang="en_US">Acquisition handle.</description>
+<mixed_type>false</mixed_type>
+<sem_type>handle</sem_type>
+<type_list>
+<item>integer</item>
+</type_list>
+</parameter>
+<parameter id="Image">
+<description lang="en_US">Image data, according the format specified by the parameter 'color_space' when opening the frame grabber.
+
+
+default' : same as 'rgb' is specified.
+'rgb' : 3ch image
+  Ch1: Height image(16bit)
+  Ch2: Luminance image(16bit)
+  Ch3: reserved(16bit) 
+'gray'：1ch image
+Ch1: Height image(16bit)
+'point'：2ch image
+Ch1: Z image(float)
+Ch2: X image(float)</description>
+<multichannel>optional</multichannel>
+<multivalue>false</multivalue>
+<sem_type>image</sem_type>
+<type_list>
+<item>uint2</item>
+<item>real</item>
+</type_list>
+</parameter>
+<parameter id="ImageHeight">
+<default_type>integer</default_type>
+<description lang="en_US">Total image height. It must be defined large enough to acquire data from the whole part.</description>
+<sem_type>number</sem_type>
+<type_list>
+<item>integer</item>
+</type_list>
+</parameter>
+<parameter id="Timeout">
+<default_type>integer</default_type>
+<description lang="en_US">Image acquisition timeout (in milliseconds)</description>
+<sem_type>integer</sem_type>
+<type_list>
+<item>integer</item>
+</type_list>
+</parameter>
+</parameters>
+</docu>
+</procedure>
+</hdevelop>

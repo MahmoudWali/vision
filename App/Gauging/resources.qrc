@@ -1,0 +1,18 @@
+<RCC>
+    <qresource prefix="/icons">
+        <file>resources/bottom.png</file>
+        <file>resources/left.png</file>
+        <file>resources/right.png</file>
+        <file>resources/top.png</file>
+        <file>resources/start.png</file>
+        <file>resources/stop.png</file>
+        <file>resources/csv.png</file>
+        <file>resources/load.png</file>
+        <file>resources/training.png</file>
+        <file>resources/connection.png</file>
+        <file>resources/reset.png</file>
+        <file>resources/save.png</file>
+        <file>resources/open.png</file>
+        <file>resources/plc.png</file>
+    </qresource>
+</RCC>

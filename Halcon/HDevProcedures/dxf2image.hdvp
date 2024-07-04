@@ -1,0 +1,116 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<hdevelop file_version="1.2" halcon_version="23.05.0.0">
+<procedure name="dxf2image">
+<interface>
+<oo>
+<par name="Image" base_type="iconic" dimension="0"/>
+</oo>
+<ic>
+<par name="DxfPath" base_type="ctrl" dimension="0"/>
+<par name="ImageName" base_type="ctrl" dimension="0"/>
+<par name="Scale" base_type="ctrl" dimension="0"/>
+</ic>
+</interface>
+<body>
+<c>* Read DFX file</c>
+<l>try</l>
+<l>    read_contour_xld_dxf (Contours, DxfPath, [], [], DxfStatus)    </l>
+<l>catch (Exception)</l>
+<l>    dev_get_exception_data (Exception, 'error_code', ErrorCode)</l>
+<l>    throw ([ErrorCode , 'Could not read the DXF from: ' + DxfPath] )</l>
+<l>endtry</l>
+<c></c>
+<c></c>
+<c>* Rotate and scale DXF</c>
+<l>hom_mat2d_identity (HomMat2DIdentity)</l>
+<l>hom_mat2d_rotate (HomMat2DIdentity, rad(0), 0, 0, HomMat2DRotate)</l>
+<l>hom_mat2d_scale_local (HomMat2DRotate, Scale, Scale, HomMat2DScale)</l>
+<l>affine_trans_contour_xld (Contours, ContoursAffineTrans, HomMat2DScale)</l>
+<l>* gen_region_contour_xld (ContoursAffineTrans, Region, 'filled')</l>
+<l>* count_obj (ContoursAffineTrans, nCountours)</l>
+<c></c>
+<c>* Calculate XLD width and height</c>
+<l>smallest_rectangle1_xld (ContoursAffineTrans, Rows1, Cols1, Rows2, Cols2)</l>
+<l>min_row := min(Rows1)</l>
+<l>min_col := min(Cols1)</l>
+<l>max_row := max(Rows2)</l>
+<l>max_col := max(Cols2)</l>
+<l>Width := max_col - min_col + 1</l>
+<l>* Height := round(max_row - min_row)</l>
+<l>tuple_ceil ((max_row - min_row) + 1, Height)</l>
+<c></c>
+<c>* Generate a constant image with the same size</c>
+<l>gen_image_const (ImageTmp, 'byte', Width, Height)</l>
+<l>gen_image_proto (ImageTmp, Image, 255)</l>
+<c></c>
+<c></c>
+<c>* Align the XLD to the image domain</c>
+<l>hom_mat2d_translate (HomMat2DIdentity, -min_row, -min_col, HomMat2DTranslate)</l>
+<l>affine_trans_contour_xld (ContoursAffineTrans, ContoursAligned, HomMat2DTranslate)</l>
+<c></c>
+<c></c>
+<c>* Segment XLD into holes and edges</c>
+<l>HoleMaxWidth := Width / 2.0</l>
+<l>HoleMaxHeight := Height / 2.0</l>
+<l>select_shape_xld (ContoursAligned, Holes, ['height', 'contlength'], 'and', [0, 0], [HoleMaxHeight, HoleMaxWidth])</l>
+<l>select_shape_xld (ContoursAligned, Edges, ['width', 'height'], 'or', [HoleMaxWidth, HoleMaxHeight], [Width, Height])</l>
+<l>regress_contours_xld (Holes, RegressContours, 'median', 1)</l>
+<l>union_adjacent_contours_xld (RegressContours, HolesUnion, 10, 1, 'attr_keep')</l>
+<l>concat_obj (Edges, HolesUnion, Contours)</l>
+<c></c>
+<l>* union_adjacent_contours_xld (ContoursAligned, UnionContours1, 10, 1, 'attr_keep')</l>
+<l>* union_collinear_contours_xld (UnionContours1, UnionContours2, 10, 1, 2, 0.1, 'attr_keep')</l>
+<c></c>
+<l>gen_region_contour_xld (Contours, Region, 'filled')</l>
+<l>union1 (Region, RegionUnion)</l>
+<l>* gen_contour_region_xld (RegionUnion, Contours1, 'border')</l>
+<l>overpaint_region (Image, RegionUnion, 64, 'fill')</l>
+<l>add_image_border (Image, Image, 10, 255)</l>
+<l>return ()</l>
+</body>
+<docu id="dxf2image">
+<abstract lang="en_US">Halcon procedure to convert a DXF into an binary image.</abstract>
+<parameters>
+<parameter id="DxfPath">
+<default_type>string</default_type>
+<description lang="en_US">Path to input DXF file to be converted to image.</description>
+<multivalue>false</multivalue>
+<sem_type>string</sem_type>
+<type_list>
+<item>string</item>
+</type_list>
+</parameter>
+<parameter id="Image">
+<description lang="en_US">Output image representing the DXF file.</description>
+<multichannel>false</multichannel>
+<multivalue>false</multivalue>
+<sem_type>image</sem_type>
+<type_list>
+<item>byte</item>
+<item>uint2</item>
+<item>real</item>
+</type_list>
+</parameter>
+<parameter id="ImageName">
+<default_type>string</default_type>
+<description lang="en_US">Name of the image to be saved.</description>
+<multivalue>false</multivalue>
+<sem_type>string</sem_type>
+<type_list>
+<item>string</item>
+</type_list>
+</parameter>
+<parameter id="Scale">
+<default_type>real</default_type>
+<default_value>10.0</default_value>
+<description lang="en_US">Scaling factor to match the 3D scanner resolution.</description>
+<multivalue>false</multivalue>
+<sem_type>real</sem_type>
+<type_list>
+<item>real</item>
+</type_list>
+</parameter>
+</parameters>
+</docu>
+</procedure>
+</hdevelop>

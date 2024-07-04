@@ -1,0 +1,248 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<hdevelop file_version="1.2" halcon_version="23.05.0.0">
+<procedure name="main">
+<interface/>
+<body>
+<l>dev_update_off ()</l>
+<c></c>
+<c>***</c>
+<c>* Declare variables</c>
+<c>***</c>
+<l>DataDir := 'C:/Users/slv1brg/Documents/source/PreNotchGauging/repo/Halcon/Data/'</l>
+<l>* DataDir := 'D:/Data/'</l>
+<l>ImgDir := DataDir + 'Images/DXF2Image/'</l>
+<l>ModelDir := DataDir + 'Models/'</l>
+<l>SpecDir := DataDir + 'Specification/'</l>
+<l>PartNumber := '0400-0170-04-0002'</l>
+<l>* PartNumber := 'jacobs_office'</l>
+<l>* ViewList := ['top', 'bottom', 'left', 'right']</l>
+<l>ViewList := ['195-04531 - Rev A (Front)']</l>
+<c></c>
+<l>View := ViewList[0]</l>
+<l>SpecFile := '0400-0170-04-0002 - Halcon IDs - Rev B.json'</l>
+<l>DxfFile := SpecDir + PartNumber + '/' + View + '.dxf'</l>
+<l>MetrologyFile := ModelDir + PartNumber + '_' + View + '.mtr'</l>
+<l>ShapeModelFile := ModelDir + PartNumber + '_' + View + '.shm'</l>
+<l>* read_dict (DataDir + 'measurement_data_model.json', ['convert_json_arrays_to'], ['tuple_if_possible'], MeasurementSpec)</l>
+<l>read_dict ('D:/Data/Images/measurement_data_model.json', ['convert_json_arrays_to'], ['tuple_if_possible'], MeasurementSpec)</l>
+<c></c>
+<c>***</c>
+<c>* Load and prepare template image</c>
+<c>***</c>
+<l>read_image (ImageTemplate, 'D:/Data/Images/0400-0160-top.png')</l>
+<l>gen_rectangle1 (ROI_0, -657.795, -1015.81, 5098.8, 13289.3)</l>
+<l>reduce_domain (ImageTemplate, ImageTemplate, ImageTemplateReduced)</l>
+<l>crop_domain (ImageTemplateReduced, ImageTemplateCropped)</l>
+<l>get_image_size (ImageTemplateCropped, Width, Height)</l>
+<c>* Add some rectangles</c>
+<l>* gen_rectangle1 (ROI_0, 440.105, 4202.11, 1264.58, 5093.17)</l>
+<l>* gen_rectangle1 (TMP_Region, 493.297, 5611.84, 1264.58, 6556.1)</l>
+<l>* union2 (ROI_0, TMP_Region, ROI_0)</l>
+<l>* overpaint_region (ImageTemplateCropped, ROI_0, 255, 'fill')</l>
+<c></c>
+<c>* Load image to be processed</c>
+<l>read_image (Image, 'D:/Data/Images/0400-0160-top.png')</l>
+<l>* rotate_image (Image, ImageRotate, 0, 'constant')</l>
+<c></c>
+<c></c>
+<c>* Define alignment ROI</c>
+<l>* gen_rectangle1 (ROI_0, -4.76702, 43.5788, 1139.36, 3634.99)</l>
+<l>* gen_rectangle1 (ROI_0, 256.157, 7502.16, 910.376, 9206.77)</l>
+<l>* RoiAlign := [256.157, 7502.16, 910.376, 9206.77]</l>
+<l>* gen_rectangle1 (ROI_0, 255.689, 1376.71, 1016.54, 3391.15)</l>
+<l>* RoiAlign := [255.689, 1376.71, 1016.54, 3391.15]</l>
+<l>gen_rectangle1 (ROI_0, -657.795, -1015.81, 5098.8, 13289.3)</l>
+<l>RoiAlign := [-657.795, -1015.81, 5098.8, 13289.3]</l>
+<c></c>
+<c></c>
+<c></c>
+<l>TrainModels := true</l>
+<c></c>
+<l>if(TrainModels)</l>
+<c>    </c>
+<c>    ***</c>
+<c>    * Create metrology model</c>
+<c>    ***</c>
+<c>    </c>
+<c>    * Define the camera parameter.</c>
+<l>*     gen_cam_par_area_scan_division (0.0128649, -661.434, 5.30004e-006, 5.3e-006, 620.043, 497.402, Width, Height, CameraParam)</l>
+<l>    CameraParam := []</l>
+<c>    * The pose of the measurement plane can be derived by placing a</c>
+<c>    * calibration plate in the plane of the object to be measured</c>
+<c>    * and by determining its pose.</c>
+<l>    MeasurementPlane := [0.00940956, -0.00481017, 0.29128, 0.478648, 359.65, 0.785, 0]</l>
+<c>    </c>
+<c>    * Specify reference method to create the metrology model ('Image' or 'DXF')</c>
+<l>    RefMethod := 'DXF'</l>
+<l>    s_ratio := 0.873021</l>
+<l>    Scale := 1/0.035</l>
+<l>    if (RefMethod == 'Image')</l>
+<c>        * Create the metrology model using a template image</c>
+<l>        create_metrology_from_image (ImageTemplateCropped, CameraParam, MeasurementPlane, MetrologyModel)</l>
+<c>        * TOP</c>
+<l>*         DxfFile := 'C:/Users/slv1brg/Documents/source/PreNotchGauging/Info/2024.02.28 - Provided Info/Provided Info/Part Numbers (to be inspected)/Drawing 12.6.23/0400-0160/ECR-195-04516 - Rev B (Top).dxf'</l>
+<l>        create_metrology_from_dxf (ModelContour1, MeasureContour1, ImageTemplate1, DxfFile, CameraParam, MeasurementPlane, Scale, MetrologyModel)</l>
+<c>        * Inspect the shapes that have been added to the metrology model.</c>
+<l>        get_metrology_object_model_contour (ModelContour, MetrologyModel, 'all', 1.5)</l>
+<l>        get_metrology_object_measures (MeasureContour, MetrologyModel, 'all', 'all', Row, Column)</l>
+<l>        dev_clear_window ()</l>
+<l>        dev_display (ImageTemplateCropped)</l>
+<l>        dev_set_color ('green')</l>
+<l>        dev_display (MeasureContour)</l>
+<l>        stop()</l>
+<c>        </c>
+<l>    elseif (RefMethod == 'DXF')</l>
+<c>        * Create the metrology model using a DXF file</c>
+<c>        * TOP</c>
+<l>        DxfFile := 'D:/Data/Images/ECR-195-04516 - Rev B (Top).dxf'</l>
+<l>        create_metrology_from_dxf (MetrologyModelContour, MetrologyMeasureContour, ImageTemplateMetrology, DxfFile, CameraParam, MeasurementPlane, Scale, MetrologyModel)</l>
+<c>        </c>
+<l>        dev_clear_window ()</l>
+<l>        dev_display (ImageTemplateMetrology)</l>
+<l>        dev_set_line_width (3)</l>
+<l>        dev_set_color ('red')</l>
+<l>        dev_display (MetrologyModelContour)</l>
+<l>        dev_set_line_width (1)    </l>
+<l>        dev_set_color ('green')</l>
+<l>        dev_display (MetrologyMeasureContour)    </l>
+<l>        stop()</l>
+<l>    endif</l>
+<c>    </c>
+<c>    ***</c>
+<c>    * Create the alignment model</c>
+<c>    ***</c>
+<l>    create_alignment_model (ImageTemplateMetrology, MetrologyModel, RoiAlign, ModelID)</l>
+<l>    get_shape_model_contours (ShapeModelContours, ModelID, 1)</l>
+<c>    </c>
+<c>    * Save the metrology model to file</c>
+<l>*     write_metrology_model (MetrologyModel, MetrologyFile)</l>
+<l>    save_metrology_model (MetrologyModel, MetrologyFile)</l>
+<c>    </c>
+<c>    * Save the alignment model to file</c>
+<c>    </c>
+<l>*     write_shape_model (ModelID, ShapeModelFile)</l>
+<l>    save_alignment_model (ModelID, ShapeModelFile)</l>
+<l>endif</l>
+<c></c>
+<c></c>
+<c>***</c>
+<c>* Processing phase</c>
+<c>***</c>
+<c></c>
+<c>* Load metrology model</c>
+<l>* read_metrology_model (MetrologyFile, MetrologyModel)</l>
+<l>load_metrology_model (MetrologyFile, MetrologyModel)</l>
+<c></c>
+<c></c>
+<c>* Load alignment model</c>
+<l>* read_shape_model (ShapeModelFile, ModelID)</l>
+<l>load_alignment_model (ShapeModelFile, ModelID)</l>
+<c></c>
+<c></c>
+<c>* Parse list of measurements to be done</c>
+<l>* parse_measurement_list (MetrologyModel, MeasurementList)</l>
+<c></c>
+<c></c>
+<c>* Read real image</c>
+<l>read_image (Image, 'D:/Data/Images/0400-0160-top.png')</l>
+<l>* rotate_image (Image, ImageRotate, 90, 'constant')</l>
+<c></c>
+<c>* Determine scale</c>
+<l>* B1 := 111.25</l>
+<l>* B3 := 150.37</l>
+<l>* DeltaX := B3 - B1</l>
+<l>* DeltaXScaled := DeltaX / 0.04</l>
+<l>* gen_rectangle1 (ROI_0, 616.998, 12224.6, 1198.15, 14481.3)</l>
+<l>* reduce_domain (ImageRotate, ROI_0, ImageTmp)</l>
+<l>* binary_threshold (ImageTmp, Region, 'max_separability', 'dark', UsedThreshold)</l>
+<l>* connection (Region, ConnectedRegions)</l>
+<l>* sort_region (ConnectedRegions, SortedRegions, 'character', 'true', 'column')</l>
+<l>* area_center (SortedRegions, Area, Row1, Column1)</l>
+<l>* distance_pp (Row1[0], Column1[0], Row1[2], Column1[2], DistancePx)</l>
+<c></c>
+<l>* scale := 61.2118 / 114.972</l>
+<l>* scale := DeltaXScaled / DistancePx</l>
+<l>* zoom_image_factor (ImageRotate, ImageZoomed, scale, scale, 'constant')</l>
+<l>* gen_rectangle1 (ROI_0, 293.918, 18800.3, 798.974, 20365.2)</l>
+<l>RoiSearch := [-657.795, -1015.81, 5098.8, 13289.3]</l>
+<l>perform_measurement (Image, MetrologyModel, ModelID, RoiSearch, MeasurementSpec, PartNumber, View)</l>
+<c></c>
+<c></c>
+<c>* Simulate different images</c>
+<l>hom_mat2d_identity (HomMat2DIdentity)</l>
+<l>hom_mat2d_translate (HomMat2DIdentity, 0, 0, HomMat2DTranslate)</l>
+<l>hom_mat2d_rotate_local (HomMat2DTranslate, rad(0), HomMat2DRotate)</l>
+<l>affine_trans_image (ImageTemplateCropped, ImageAffineTrans, HomMat2DRotate, 'nearest_neighbor', 'false')</l>
+<c></c>
+<c></c>
+<c></c>
+<c>* Parse measurement specification</c>
+<l>* parse_measurement_spec (DataDir + 'measurement_data_model.json', MeasurementSpec)</l>
+<c></c>
+<c></c>
+<c>* Perform the measurements using the metrology model, aligning it using shape-based matching</c>
+<l>perform_measurement (ImageTemplateMetrology, MetrologyModel, ModelID, RoiAlign, MeasurementSpec, PartNumber, View)</l>
+<c></c>
+<c></c>
+<c></c>
+<c></c>
+<c></c>
+<c></c>
+<c></c>
+<c></c>
+<c></c>
+<c></c>
+<c></c>
+</body>
+<docu id="main">
+<parameters/>
+</docu>
+</procedure>
+<procedure name="show_contours">
+<interface>
+<io>
+<par name="Image" base_type="iconic" dimension="0"/>
+<par name="ModelContour" base_type="iconic" dimension="0"/>
+<par name="MeasureContour" base_type="iconic" dimension="0"/>
+<par name="ShapeModelContours" base_type="iconic" dimension="0"/>
+</io>
+<ic>
+<par name="WindowHandle" base_type="ctrl" dimension="0"/>
+<par name="Message" base_type="ctrl" dimension="0"/>
+</ic>
+</interface>
+<body>
+<l>dev_clear_window ()</l>
+<l>dev_display (Image)</l>
+<l>dev_set_line_width (2)</l>
+<l>dev_set_color ('blue')</l>
+<l>dev_display (ModelContour)</l>
+<l>dev_set_line_width (1)</l>
+<l>count_obj (MeasureContour, Number)</l>
+<c>* Determine if the measure contours should be shown</c>
+<l>if (Number &gt; 0)</l>
+<l>    dev_set_color ('gray')</l>
+<l>    dev_display (MeasureContour)</l>
+<l>endif</l>
+<l>count_obj (ShapeModelContours, Number)</l>
+<l>if (Number &gt; 0)</l>
+<l>    dev_set_color ('white')</l>
+<l>    dev_display (ShapeModelContours)</l>
+<l>endif</l>
+<c></c>
+<l>disp_message (WindowHandle, Message, 'window', 12, 12, 'black', 'true')</l>
+<l>disp_continue_message (WindowHandle, 'black', 'true')</l>
+<l>return ()</l>
+</body>
+<docu id="show_contours">
+<parameters>
+<parameter id="Image"/>
+<parameter id="MeasureContour"/>
+<parameter id="Message"/>
+<parameter id="ModelContour"/>
+<parameter id="ShapeModelContours"/>
+<parameter id="WindowHandle"/>
+</parameters>
+</docu>
+</procedure>
+</hdevelop>

@@ -1,0 +1,89 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<hdevelop file_version="1.2" halcon_version="23.05.0.0">
+<procedure name="main">
+<interface/>
+<body>
+<l>dev_update_off ()</l>
+<l>filename := 'C:/Users/slv1brg/Documents/source/PreNotchGauging/repo/Halcon/Data/Specification/0400-0170-04-0002/0400-0170-04-0002 - Halcon IDs - Rev B.txt'</l>
+<l>open_file (filename, 'input', FileHandle)</l>
+<c></c>
+<c></c>
+<c>* Read Header</c>
+<l>fread_line (FileHandle, FirstLine, IsEOF)</l>
+<l>tuple_regexp_replace (FirstLine, '\n', '', FirstLine)</l>
+<l>tuple_split (FirstLine, '\t', Header)</l>
+<c></c>
+<c>* Prepare start of JSON file</c>
+<l>JSON := '['</l>
+<l>Element := ''</l>
+<l>fread_line (FileHandle, Line, IsEOF)</l>
+<l>tuple_regexp_replace (Line, '\n', '', Line)</l>
+<l>while (IsEOF != 1)</l>
+<c>    </c>
+<c>    * Split the line into individual values    </c>
+<l>    tuple_split (Line, '\t', Substrings)   </l>
+<l>    SpecID := Substrings[0]</l>
+<l>    SpecValue := Substrings[1]</l>
+<l>    TolUp := Substrings[2]</l>
+<l>    TolDown := Substrings[3]</l>
+<l>    MeasType := Substrings[4]</l>
+<l>    HalconID := Substrings[5]</l>
+<l>    Notes := Substrings[6]</l>
+<c>    </c>
+<c>    * Construct JSON object</c>
+<l>    Element := '{'</l>
+<l>    Element := Element + '"' + Header[0] + '"' + ': "' + SpecID + '",'</l>
+<l>    Element := Element + '"' + Header[1] + '": ' + number(SpecValue) + ','</l>
+<l>    Element := Element + '"' + Header[2] + '": ' + number(TolUp) + ','</l>
+<l>    Element := Element + '"' + Header[3] + '": ' + number(TolDown) + ','    </l>
+<l>    Element := Element + '"' + Header[4] + '": "' + MeasType + '",'</l>
+<l>*     tuple_regexp_match (HalconID, '\\[(\\w+)(?:,(\\w+))?\\]', ExtractedTuple)</l>
+<l>*     tuple_regexp_match (HalconID, '\\[((?:\\w+)(?:,(?:\\w+))?)\\]', MatchStr)</l>
+<l>    tuple_regexp_match (HalconID, '\\[\\s*(\\w+|\\d+)\\s*(?:,\\s*(\\w+|\\d+)\\s*)?\\s*\\]', MatchStr)</l>
+<l>    tuple_split (MatchStr, ',', ExtractedTuple)</l>
+<l>    tuple_is_number (ExtractedTuple, IsNumber)</l>
+<l>    HalconIDjson := ''</l>
+<l>    for i := 0 to |ExtractedTuple|-1 by 1</l>
+<l>        if(IsNumber[i])</l>
+<c>            * Number</c>
+<l>            tuple_number (ExtractedTuple[i], SingleItem)</l>
+<l>        else</l>
+<c>            * String</c>
+<l>            SingleItem := '"' + ExtractedTuple[i] + '"'</l>
+<l>        endif</l>
+<l>        HalconIDjson := HalconIDjson + SingleItem</l>
+<l>        if(i &lt; (|ExtractedTuple|-1) )</l>
+<l>            HalconIDjson := HalconIDjson + ','</l>
+<l>        endif</l>
+<l>    endfor</l>
+<l>    Element := Element + '"' + Header[5] + '"' + ': [' + HalconIDjson + '],'</l>
+<l>    Element := Element + '"' + Header[6] + '"' + ': "' + Notes + '"'    </l>
+<l>    Element := Element + '}'</l>
+<c>    </c>
+<l>    JSON := JSON + Element</l>
+<c>    </c>
+<l>    fread_line (FileHandle, Line, IsEOF)</l>
+<l>    tuple_regexp_replace (Line, '\n', '', Line)    </l>
+<l>    if(IsEOF != 1)</l>
+<l>        JSON := JSON + ','</l>
+<l>    endif    </l>
+<l>endwhile</l>
+<c></c>
+<l>JSON := JSON + ']'</l>
+<c></c>
+<l>close_file (FileHandle)</l>
+<c></c>
+<c></c>
+<l>tuple_regexp_replace (filename, '\\.txt', '.json', JsonFilename)</l>
+<l>open_file (JsonFilename, 'output', FileHandleJSON)</l>
+<l>fwrite_string (FileHandleJSON, JSON)</l>
+<l>close_file (FileHandleJSON)</l>
+<c></c>
+<c>* Test convert JSON to dictionary</c>
+<l>json_to_dict (JSON, [], [], DictHandle)</l>
+</body>
+<docu id="main">
+<parameters/>
+</docu>
+</procedure>
+</hdevelop>

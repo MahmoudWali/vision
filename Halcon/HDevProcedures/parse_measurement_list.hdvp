@@ -1,0 +1,82 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<hdevelop file_version="1.2" halcon_version="23.05.0.0">
+<procedure name="parse_measurement_list">
+<interface>
+<ic>
+<par name="MetrologyModel" base_type="ctrl" dimension="0"/>
+</ic>
+<oc>
+<par name="MeasurementList" base_type="ctrl" dimension="0"/>
+</oc>
+</interface>
+<body>
+<l>get_metrology_object_model_contour (ModelContour, MetrologyModel, 'all', 1.5)</l>
+<l>count_obj (ModelContour, Number)</l>
+<l>MeasurementList := dict{}</l>
+<c></c>
+<c>* Define reference object</c>
+<l>* select_obj (ModelContour, RefObj, 1)</l>
+<l>* area_center_xld (RefObj, RefArea, RefRow, RefCol, PointOrder)</l>
+<c></c>
+<c></c>
+<c>* Iterate over all measurement objects and extract the measurement list</c>
+<l>for i:=0 to Number-1 by 1</l>
+<l>    DictHandle := dict{}</l>
+<c>    </c>
+<c>    * Select object</c>
+<l>    select_obj (ModelContour, ObjectSelected, i+1)</l>
+<c>    </c>
+<c>    * Check if it is better fit by a circle or a rectangle</c>
+<l>    circularity_xld (ObjectSelected, Circularity)</l>
+<l>    rectangularity_xld (ObjectSelected, Rectangularity)</l>
+<l>    if(Circularity &gt; Rectangularity)</l>
+<c>        * Circle</c>
+<l>        elliptic_axis_xld (ObjectSelected, Ra, Rb, Phi)</l>
+<l>        DictHandle.shape_type := 'circle'</l>
+<l>        DictHandle.shape_features := ['radius']</l>
+<l>        DictHandle.value := Ra</l>
+<c>        * Should we include some graphical info in this dictionary?</c>
+<l>*         DictHandle.shape_countors := xld_contour</l>
+<l>    else</l>
+<c>        * Rectangle</c>
+<l>        smallest_rectangle2_xld (ObjectSelected, Row, Col, Phi1, Length1, Length2)</l>
+<l>        DictHandle.shape_type := 'rectangle2'</l>
+<l>        DictHandle.shape_features := ['length1', 'length2']</l>
+<l>        DictHandle.value := [Length1, Length2]</l>
+<l>    endif</l>
+<c>    </c>
+<l>    MeasurementList[i] := DictHandle</l>
+<c>    </c>
+<l>endfor</l>
+<c></c>
+<l>return ()</l>
+</body>
+<docu id="parse_measurement_list">
+<abstract lang="en_US">Halcon procedure to parse the list of measurements from a metrology model. 
+
+Each item includes its ID, shape dimension and distance from reference object. 
+
+The reference object is the leftmost object in the metrology model.</abstract>
+<parameters>
+<parameter id="MeasurementList">
+<default_type>integer</default_type>
+<description lang="en_US">Dictionary representing the list of measurements to be done.</description>
+<mixed_type>false</mixed_type>
+<sem_type>dict</sem_type>
+<type_list>
+<item>integer</item>
+</type_list>
+</parameter>
+<parameter id="MetrologyModel">
+<default_type>integer</default_type>
+<description lang="en_US">Metrology model ID.</description>
+<mixed_type>false</mixed_type>
+<sem_type>handle</sem_type>
+<type_list>
+<item>integer</item>
+</type_list>
+</parameter>
+</parameters>
+</docu>
+</procedure>
+</hdevelop>

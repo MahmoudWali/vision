@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<hdevelop file_version="1.2" halcon_version="23.05.0.0">
+<procedure name="save_metrology_model">
+<interface>
+<ic>
+<par name="MetrologyModel" base_type="ctrl" dimension="0"/>
+<par name="FileName" base_type="ctrl" dimension="0"/>
+</ic>
+</interface>
+<body>
+<l>write_metrology_model (MetrologyModel, FileName)</l>
+<l>return ()</l>
+</body>
+<docu id="save_metrology_model">
+<abstract lang="en_US">Halcon procedure to save the metrology model to file.</abstract>
+<parameters>
+<parameter id="FileName">
+<default_type>string</default_type>
+<description lang="en_US">Filename, including path, were to store the metrology model.</description>
+<mixed_type>false</mixed_type>
+<multivalue>false</multivalue>
+<sem_type>string</sem_type>
+<type_list>
+<item>string</item>
+</type_list>
+</parameter>
+<parameter id="MetrologyModel">
+<default_type>integer</default_type>
+<description lang="en_US">Handle of the metrology model.</description>
+<mixed_type>false</mixed_type>
+<multivalue>false</multivalue>
+<sem_type>handle</sem_type>
+<type_list>
+<item>integer</item>
+</type_list>
+</parameter>
+</parameters>
+</docu>
+</procedure>
+</hdevelop>

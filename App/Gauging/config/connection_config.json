@@ -1,0 +1,26 @@
+{
+    "Camera1": {
+        "ID": 1,
+        "IP" : "192.168.1.100:24691:24692",
+		"Xsize" : 3200,
+        "Ysize" : 1000,
+        "ExternalTrig" : false,
+		"TimeOut" : 60000
+    }
+    ,
+    "Camera2": {
+        "ID": 2,
+        "IP" : "192.168.1.101:24691:24692",
+		"Xsize" : 3200,
+        "Ysize" : 1000,
+        "ExternalTrig" : false,
+		"TimeOut" : 60000
+    }
+    ,
+    "OPC" : {
+        "IP" : "opc.tcp://127.0.0.1:43344"
+    },
+	"Application": {
+		"HeartBeat": 500
+	}
+}

@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<hdevelop file_version="1.2" halcon_version="23.05.0.0">
+<procedure name="load_alignment_model">
+<interface>
+<ic>
+<par name="FileName" base_type="ctrl" dimension="0"/>
+</ic>
+<oc>
+<par name="AlignmentModel" base_type="ctrl" dimension="0"/>
+</oc>
+</interface>
+<body>
+<l>read_shape_model (FileName, AlignmentModel)</l>
+<l>return ()</l>
+</body>
+<docu id="load_alignment_model">
+<abstract lang="en_US">Halcon procedure to load an alignment model from file.</abstract>
+<parameters>
+<parameter id="AlignmentModel">
+<default_type>integer</default_type>
+<description lang="en_US">Handle of the alignment model to be loaded.</description>
+<mixed_type>false</mixed_type>
+<multivalue>false</multivalue>
+<sem_type>handle</sem_type>
+<type_list>
+<item>integer</item>
+</type_list>
+</parameter>
+<parameter id="FileName">
+<default_type>string</default_type>
+<description lang="en_US">Filename, including path, of the alignment model.</description>
+<mixed_type>false</mixed_type>
+<multivalue>false</multivalue>
+<sem_type>string</sem_type>
+<type_list>
+<item>string</item>
+</type_list>
+</parameter>
+</parameters>
+</docu>
+</procedure>
+</hdevelop>

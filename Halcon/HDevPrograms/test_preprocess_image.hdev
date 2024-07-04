@@ -1,0 +1,125 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<hdevelop file_version="1.2" halcon_version="23.05.0.0">
+<procedure name="main">
+<interface/>
+<body>
+<c>* Load image</c>
+<l>ImgDir := 'C:/Users/slv1brg/Documents/source/PreNotchGauging/repo/Halcon/Data/Images/OfflineSamples/'</l>
+<l>read_image (Image, ImgDir + 'TiledImageScaled')</l>
+<l>rotate_image (Image, ImageRotate, -90, 'constant')</l>
+<c></c>
+<c></c>
+<c>* Crop image</c>
+<l>binary_threshold (ImageRotate, RegionData, 'smooth_histo', 'light', UsedThreshold)</l>
+<l>fill_up (RegionData, RegionFillUp)</l>
+<l>reduce_domain (ImageRotate, RegionFillUp, ImageReduced)</l>
+<l>crop_domain (ImageReduced, ImagePart)</l>
+<c></c>
+<c></c>
+<c>* Open window</c>
+<l>get_image_size (ImagePart, Width, Height)</l>
+<l>DisplayScale := 0.3</l>
+<l>dev_open_window_fit_image (ImageRotate, 0, 0, Width*DisplayScale, Height*DisplayScale, WindowID)</l>
+<l>set_display_font (WindowID, 14, 'mono', 'true', 'false')</l>
+<l>dev_clear_window ()</l>
+<l>dev_display (ImagePart)</l>
+<l>stop()</l>
+<c></c>
+<c></c>
+<c>* Find ROI for edges</c>
+<l>median_image (ImagePart, ImageMedian, 'square', 5, 'mirrored')</l>
+<l>threshold (ImagePart, Regions, 0, 300)</l>
+<l>opening_circle (Regions, RegionOpening, 31)</l>
+<l>boundary (RegionOpening, RegionBorder, 'inner')</l>
+<l>dilation_circle (RegionBorder, RegionEdges, 37)</l>
+<l>dev_clear_window ()</l>
+<l>dev_display (ImagePart)</l>
+<l>dev_set_color ('yellow')</l>
+<l>dev_set_draw ('margin')</l>
+<l>dev_display (RegionEdges)</l>
+<l>stop()</l>
+<c></c>
+<c></c>
+<c>* Extract edges</c>
+<l>reduce_domain (ImageMedian, RegionEdges, ImageEdges)</l>
+<l>edges_sub_pix (ImageEdges, Edges, 'lanser2', 0.3, 10, 30)</l>
+<l>select_shape_xld (Edges, EdgesSelected, 'circularity', 'and', 0.85, 1.0)</l>
+<l>sort_contours_xld (EdgesSelected, SortedContours, 'character', 'true', 'row')</l>
+<l>dev_clear_window ()</l>
+<l>dev_display (ImagePart)</l>
+<l>dev_set_color ('red')</l>
+<l>dev_display (SortedContours)</l>
+<l>stop()</l>
+<c></c>
+<c></c>
+<c>* Fit ellipses to the found edges</c>
+<l>fit_ellipse_contour_xld (SortedContours, 'ftukey', -1, 2, 0, 200, 3, 2, Row, Column, Phi, Ra, Rb, StartPhi, EndPhi, PointOrder)</l>
+<l>NumContours := |Ra|</l>
+<l>gen_ellipse_contour_xld (ContEllipse, Row, Column, Phi, Ra, Rb, gen_tuple_const(NumContours,0), gen_tuple_const(NumContours,rad(360)), gen_tuple_const(NumContours,'positive'), 1)</l>
+<l>dev_clear_window ()</l>
+<l>dev_display (ImagePart)</l>
+<l>colored_display (ContEllipse, ['red','green', 'blue'])</l>
+<l>stop()</l>
+<c></c>
+<l>dev_set_color ('yellow')</l>
+<l>for i := 0 to NumContours - 1 by 1</l>
+<l>    sinPhi := sin(Phi[i])</l>
+<l>    cosPhi := cos(Phi[i])</l>
+<l>    disp_arrow (WindowID, Row[i], Column[i], Row[i] - sinPhi * Ra[i], Column[i] + cosPhi * Ra[i], 1)</l>
+<l>    disp_arrow (WindowID, Row[i], Column[i], Row[i] - cosPhi * Rb[i], Column[i] - sinPhi * Rb[i], 1)</l>
+<l>    disp_arrow (WindowID, Row[i], Column[i], Row[i] + sinPhi * Ra[i], Column[i] - cosPhi * Ra[i], 1)</l>
+<l>    disp_arrow (WindowID, Row[i], Column[i], Row[i] + cosPhi * Rb[i], Column[i] + sinPhi * Rb[i], 1)</l>
+<l>    set_tposition (WindowID, Row[i] - Rb[i] - 125, Column[i] - 85)</l>
+<l>    write_string (WindowID, 'D1=' + 2 * Ra[i])</l>
+<l>    set_tposition (WindowID, Row[i] - Rb[i] - 80, Column[i] - 85)</l>
+<l>    write_string (WindowID, 'D2=' + 2 * Rb[i])</l>
+<l>endfor</l>
+<l>stop()</l>
+<c></c>
+<c></c>
+<c>* Measure distance between two objects and calculate pixel pitch</c>
+<l>DistanceMM := 152.4</l>
+<l>distance_pp (Row[1], Column[1], Row[4], Column[4], DistancePx)</l>
+<l>* PixelPitch := DistanceMM/DistancePx</l>
+<l>PixelPitch := 0.025</l>
+<l>gen_arrow_contour_xld (Arrow, Row[1], Column[1], Row[4], Column[4], 25, 25)</l>
+<l>dev_clear_window ()</l>
+<l>dev_display (ImagePart)</l>
+<l>dev_set_color ('red')</l>
+<l>dev_display (Arrow)</l>
+<l>set_tposition (WindowID, Row[1] - 0, Column[1]+(Column[4] - Column[1])/2)</l>
+<l>write_string (WindowID, 'Distance=' + DistancePx * PixelPitch + 'mm')</l>
+</body>
+<docu id="main">
+<parameters/>
+</docu>
+</procedure>
+<procedure name="colored_display">
+<interface>
+<io>
+<par name="Objects" base_type="iconic" dimension="0"/>
+</io>
+<ic>
+<par name="Colors" base_type="ctrl" dimension="0"/>
+</ic>
+</interface>
+<body>
+<l>count_obj (Objects, NumObjects)</l>
+<l>NumColors := |Colors|</l>
+<l>for i := 1 to NumObjects by 1</l>
+<l>    select_obj (Objects, ObjectSelected, i)</l>
+<l>    Color := Colors[(i - 1) % NumColors]</l>
+<l>    dev_set_color (Color)</l>
+<l>    dev_display (ObjectSelected)</l>
+<l>endfor</l>
+<l>return ()</l>
+</body>
+<docu id="colored_display">
+<short lang="en_US">displays iconic objects with definable alternating colors</short>
+<parameters>
+<parameter id="Colors"/>
+<parameter id="Objects"/>
+</parameters>
+</docu>
+</procedure>
+</hdevelop>

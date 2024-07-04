@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<hdevelop file_version="1.2" halcon_version="23.05.0.0">
+<procedure name="close_keyence_LJXA">
+<interface>
+<ic>
+<par name="AcqHandle" base_type="ctrl" dimension="0"/>
+</ic>
+</interface>
+<body>
+<l>try</l>
+<l>    for i:=0 to |AcqHandle|-1 by 1</l>
+<l>        Handle := AcqHandle[i]</l>
+<l>        Device := 'Unknown'</l>
+<l>        get_handle_tuple (Handle, 'device', Device)</l>
+<l>        close_framegrabber (Handle)</l>
+<l>    endfor</l>
+<l>catch (Exception)</l>
+<l>    dev_get_exception_data (Exception, 'error_code', ErrorCode)</l>
+<l>    throw ([ErrorCode ,\
+           'The device ' + Device + ' could not be closed.\n'])</l>
+<l>endtry</l>
+<c></c>
+<l>return ()</l>
+</body>
+<docu id="close_keyence_LJXA">
+<abstract lang="en_US">Halcon procedure to close the Keyence LJXA.</abstract>
+<parameters>
+<parameter id="AcqHandle">
+<default_type>integer</default_type>
+<description lang="en_US">Acquisition handle(s)</description>
+<mixed_type>false</mixed_type>
+<multivalue>optional</multivalue>
+<sem_type>handle</sem_type>
+<type_list>
+<item>integer</item>
+</type_list>
+</parameter>
+</parameters>
+</docu>
+</procedure>
+</hdevelop>
